@@ -137,7 +137,7 @@ static int Open(vlc_object_t * p_this) {
 	fbsPixelFormat = new FbsPixelFormat();
     pos = 12;
     for (int frameNo = 1; frameNo < 6; frameNo++) {
-    	int dataLength = numerize4(p_peek, pos);
+    	int dataLength = U32_AT(&p_peek[pos]);
     	string data = header.substr(pos + 4, dataLength);
     	int paddedDataLength = 4 * ((dataLength + 3) / 4);
     	if (frameNo == 1) {
@@ -148,15 +148,15 @@ static int Open(vlc_object_t * p_this) {
 			continue;
 		}
     	if (frameNo == 4) {
-    		frameBufferWidth = numerize2(p_peek, pos+4);
-    		frameBufferHeight = numerize2(p_peek, pos+6);
+    		frameBufferWidth = U16_AT(&p_peek[pos + 4]);
+    		frameBufferHeight = U16_AT(&p_peek[pos + 6]);
     		fbsPixelFormat->bitsPerPixel = p_peek[pos+8];
     		fbsPixelFormat->depth = p_peek[pos+9];
     		fbsPixelFormat->bigEndianFlag = p_peek[pos+10];
     		fbsPixelFormat->trueColorFlag = p_peek[pos+11];
-    		fbsPixelFormat->redMax = numerize2(p_peek, pos+12);
-    		fbsPixelFormat->greenMax = numerize2(p_peek, pos+14);
-    		fbsPixelFormat->blueMax = numerize2(p_peek, pos+16);
+    		fbsPixelFormat->redMax = U16_AT(&p_peek[pos + 12]);
+    		fbsPixelFormat->greenMax = U16_AT(&p_peek[pos + 14]);
+    		fbsPixelFormat->blueMax = U16_AT(&p_peek[pos + 16]);
     		fbsPixelFormat->redShift = p_peek[pos+18];
     		fbsPixelFormat->greenShift = p_peek[pos+19];
     		fbsPixelFormat->blueShift = p_peek[pos+20];
@@ -263,12 +263,12 @@ static int Demux(demux_t *p_demux) {
             return VLC_DEMUXER_EOF;
         }
 
-    	int dataLength = numerize4(p_block->p_buffer, 0);
+    	int dataLength = U32_AT(&p_block->p_buffer[0]);
     	int paddedDataLength = 4 * ((dataLength + 3) / 4);
     	p_block = vlc_stream_Block( p_demux->s, paddedDataLength + /*timestamp*/ 4);
         p_block->i_size = p_sys->frame_size + BLOCK_ALIGN + 2 * BLOCK_PADDING;
         p_block->i_buffer = p_sys->frame_size;
-    	timestamp = numerize4(p_block->p_buffer, paddedDataLength);
+    	timestamp = U32_AT(&p_block->p_buffer[paddedDataLength]);
         zrleFrameMaker->handleFrame(p_block->p_buffer);
         p_block->p_buffer = p_rfb_buffer;
         p_block->i_dts = p_block->i_pts = i_pcr;
@@ -303,12 +303,12 @@ static int Seek(demux_t *p_demux, vlc_tick_t i_date) {
             return VLC_DEMUXER_EOF;
         }
 
-    	int dataLength = numerize4(p_block->p_buffer, 0);
+    	int dataLength = U32_AT(p_block->p_buffer);//(p_block->p_buffer, 0);
     	int paddedDataLength = 4 * ((dataLength + 3) / 4);
     	p_block = vlc_stream_Block(p_demux->s, paddedDataLength + /*timestamp*/ 4);
         p_block->i_size = p_sys->frame_size + BLOCK_ALIGN + 2 * BLOCK_PADDING;
         p_block->i_buffer = p_sys->frame_size;
-    	timestamp = numerize4(p_block->p_buffer, paddedDataLength);
+    	timestamp = U32_AT(&p_block->p_buffer[paddedDataLength]);
         zrleFrameMaker->handleFrame(p_block->p_buffer);
         p_block->p_buffer = p_rfb_buffer;
         p_block->i_dts = p_block->i_pts = timestamp * 1000;//i_pcr;
@@ -332,7 +332,7 @@ int readLastTimestamp(char* filepath) {
 	int readBytes = read(fd, c, 4); // Read 4 bytes
 	close(fd);
 	if (readBytes == 4) {
-		return numerize4(c, 0);
+		return U32_AT(&c);
 	} else {
 		return -1;
 	}

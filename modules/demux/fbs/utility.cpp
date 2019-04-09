@@ -25,15 +25,9 @@
 #endif
 
 #include "utility.hpp"
+#include "vlc_common.h"
 
 namespace fbs {
-	uint16_t numerize2(const uint8_t *data, int startIndex) {
-		return data[startIndex]*256 + data[startIndex+1];
-	}
-	uint32_t numerize4(const uint8_t *data, int startIndex) {
-		return data[startIndex]*256*256*256 + data[startIndex+1]*256*256
-				+ data[startIndex+2]*256 + data[startIndex+3];
-	}
 	uint8_t readU8(stringstream &stringstream) {
 		char c_array[1];
 		stringstream.readsome(c_array, 1);

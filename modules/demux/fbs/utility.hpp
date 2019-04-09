@@ -28,8 +28,6 @@
 
 namespace fbs {
 using namespace std;
-	uint16_t numerize2(const uint8_t *data, int startIndex);
-	uint32_t numerize4(const uint8_t *data, int startIndex);
 	uint8_t readU8(stringstream &stringstream);
 } // namespace
 #endif /* VLC_FBS_UTILITY_H_ */

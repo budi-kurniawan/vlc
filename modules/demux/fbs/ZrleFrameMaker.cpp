@@ -28,6 +28,7 @@
 #include "FbsPixelFormat.hpp"
 #include "utility.hpp"
 #include <iostream>
+#include "vlc_common.h"
 
 namespace fbs {
 using namespace fbs;
@@ -42,20 +43,19 @@ ZrleFrameMaker::ZrleFrameMaker(uint16_t fbWidth, uint16_t fbHeight,
 }
 
 void ZrleFrameMaker::handleFrame(uint8_t *data) {
-    int rectCount = numerize2(data, 2);
+    int rectCount = U16_AT(&data[2]);
     int pos = 4;
     for (int i = 0; i < rectCount; i++) {
-		uint16_t rectX = numerize2(data, pos);
+		uint16_t rectX = U16_AT(&data[pos]);
 		pos += 2;
-		uint16_t rectY = numerize2(data, pos);
+		uint16_t rectY = U16_AT(&data[pos]);
 		pos += 2;
-		uint16_t rectWidth = numerize2(data, pos);
+		uint16_t rectWidth = U16_AT(&data[pos]);
 		pos += 2;
-		uint16_t rectHeight = numerize2(data, pos);
+		uint16_t rectHeight = U16_AT(&data[pos]);
 		pos += 2;
-		//int encoding = numerize4(data, pos);
 		pos += 4; // skip encoding
-		int rectDataLength = numerize4(data, pos);
+		int rectDataLength = U32_AT(&data[pos]);
 		pos += 4;
 		if (rectDataLength > 67108864) {
 			// Something horrible happened
