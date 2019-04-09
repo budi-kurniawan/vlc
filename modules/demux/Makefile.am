@@ -134,10 +134,9 @@ libavi_plugin_la_SOURCES = demux/avi/avi.c demux/avi/libavi.c demux/avi/libavi.h
                            demux/avi/bitmapinfoheader.h
 demux_LTLIBRARIES += libavi_plugin.la
 
-libfbs_plugin_la_SOURCES = 	demux/fbs/fbs.hpp demux/fbs/fbs.cpp \
+libfbs_plugin_la_SOURCES = 	demux/fbs/fbs.cpp \
 							demux/fbs/FbsPixelFormat.hpp \
 							demux/fbs/utility.hpp demux/fbs/utility.cpp \
-							demux/fbs/ZlibStream.hpp demux/fbs/ZlibStream.cpp \
 							demux/fbs/ZrleFrameMaker.hpp demux/fbs/ZrleFrameMaker.cpp
 libfbs_plugin_la_LIBADD = $(LIBS_fbs)
 libfbs_plugin_la_LIBADD += -lz

@@ -23,21 +23,34 @@
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
+
 #include <iostream>
 #include <new>
-#include "fbs.hpp"
+#include <inttypes.h>
+#include <vlc_common.h>
+#include <vlc_plugin.h>
+#include <time.h>
+#include <vlc_meta.h>
+#include <vlc_charset.h>
+#include <vlc_input.h>
+#include <vlc_demux.h>
+#include <vlc_aout.h> /* For reordering */
+#include <iostream>
+#include <cassert>
+#include <typeinfo>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <stdexcept>
 #include "FbsPixelFormat.hpp"
 #include "utility.hpp"
-#include "ZlibStream.hpp"
 #include "ZrleFrameMaker.hpp"
 #include <chrono>
 #include <ctime>
 #include <fcntl.h>
 #include <vlc_fs.h>
 #include <vlc_url.h>
-extern "C" {
-    #include "../av1_unpack.h"
-}
 
 /** Initial memory alignment of data block.
  * @note This must be a multiple of sizeof(void*) and a power of two.

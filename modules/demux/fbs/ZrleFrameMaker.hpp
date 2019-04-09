@@ -25,10 +25,12 @@
 
 #include "FbsPixelFormat.hpp"
 #include <sstream>
-
-#include "ZlibStream.hpp"
+#include "zlib.h"
+#include <vector>
+#include <memory>
 
 namespace fbs {
+#define MAX_INFLATE_SIZE_ZLIB 128000
 
 class ZrleFrameMaker {
 public:
@@ -36,13 +38,15 @@ public:
 	uint16_t frameBufferHeight;
 	uint8_t bytesPerPixel;
 	uint8_t *p_rfb_buffer;
-	ZlibStream zlibStream;
 	int zrleTilePixels24[64 * 64]; // storage for tiles of 64 x 64 pixels, each pixel is of the form 00BBGGRR
 	ZrleFrameMaker(uint16_t fbWidth, uint16_t fbHeight, FbsPixelFormat* fbsPixelFormat, uint8_t *p_rfb_buffer);
     void handleFrame(uint8_t *data);
     void reset();
+    z_stream zStream;
+    unsigned long inflated;
 
 private:
+    std::shared_ptr<std::vector<char>> inf(char*, long);
     void populateColorArray(std::stringstream &rectDataStream, int colorArray[], int paletteSize);
     void handleRawPixels(std::stringstream &rectDataStream, int tileWidth, int tileHeight);
     void handlePackedPixels(std::stringstream &rectDataStream, int tileWidth, int tileHeight, int colorArray[], int paletteSize);
@@ -53,4 +57,3 @@ private:
 };
 } // namespace
 #endif /* VLC_FBS_ZRLEFRAMEMAKER_H_ */
-

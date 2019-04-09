@@ -38,6 +38,7 @@ ZrleFrameMaker::ZrleFrameMaker(uint16_t fbWidth, uint16_t fbHeight,
 	frameBufferHeight = fbHeight;
 	bytesPerPixel = fbsPixelFormat->bitsPerPixel / 8;
 	p_rfb_buffer = buffer;
+	reset();
 }
 
 void ZrleFrameMaker::handleFrame(uint8_t *data) {
@@ -65,7 +66,7 @@ void ZrleFrameMaker::handleFrame(uint8_t *data) {
 			rectData[j] = data[j+pos];
 		}
 		pos += rectDataLength;
-		shared_ptr<vector<char>> decompressedData = zlibStream.inf(rectData, rectDataLength);
+		shared_ptr<vector<char>> decompressedData = inf(rectData, rectDataLength);
 		char* decompressedDataData = (char*) decompressedData->data();
 
 		string s(decompressedDataData, decompressedData->size());
@@ -118,7 +119,12 @@ void ZrleFrameMaker::handleFrame(uint8_t *data) {
 }
 
 void ZrleFrameMaker::reset() {
-	zlibStream.reset();
+    inflated = zStream.avail_in = 0;
+    zStream.zalloc = Z_NULL;
+    zStream.zfree = Z_NULL;
+    zStream.opaque = Z_NULL;
+    zStream.next_in = Z_NULL;
+    inflateInit(&zStream);
 }
 
 void ZrleFrameMaker::populateColorArray(std::stringstream &rectDataStream, int colorArray[], int paletteSize) {
@@ -245,4 +251,27 @@ int ZrleFrameMaker::readPixel(std::stringstream &rectDataStream) {
     }
     return pixel;
 }
+
+std::shared_ptr<std::vector<char>> ZrleFrameMaker::inf(char* input, long inputLength) {
+	std::shared_ptr<std::vector<char>> decompressedData = std::shared_ptr<std::vector<char>>(new std::vector<char>());
+	zStream.avail_in = inputLength;
+    zStream.next_in = (Bytef*) input;
+    char chunkData[MAX_INFLATE_SIZE_ZLIB];
+    while(1) {
+        zStream.avail_out = MAX_INFLATE_SIZE_ZLIB;
+        zStream.next_out = (Bytef*) chunkData;
+        int inflateResult = inflate(&zStream, Z_NO_FLUSH);
+        unsigned int numBytesLeft = zStream.total_out - inflated;
+        for (unsigned int i = 0; i < numBytesLeft; i++) {
+            decompressedData->push_back(chunkData[i]);
+        }
+        inflated = zStream.total_out;
+        if (inflateResult != Z_OK || zStream.avail_in == 0
+        		|| (zStream.avail_out != 0 && inflateResult == Z_STREAM_END)) {
+            break;
+        }
+    }
+    return decompressedData;
+}
+
 } // namespace
